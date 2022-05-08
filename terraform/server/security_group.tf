@@ -101,3 +101,29 @@ resource "aws_security_group" "allow_tls" {
     CreatedBy = "Terraform"
   }
 }
+
+resource "aws_security_group" "allow_proxy_manager" {
+  name        = "allow_proxy_manager"
+  description = "Allow Proxy Manager inbound traffic"
+
+  ingress {
+    description = "Proxy Manager from internet"
+    from_port   = 81
+    to_port     = 81
+    cidr_blocks      = ["${data.http.myip.body}/32"]
+    protocol    = "tcp"
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name      = "allow_proxy_manager"
+    CreatedBy = "Terraform"
+  }
+}
