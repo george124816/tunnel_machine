@@ -1,7 +1,7 @@
 
 * Tunnel Machine
 
-Repository that contains infrasctruture code to create a tunnel machine to use [[https://boringproxy.io/][boringproxy]]
+Repository that contains infrasctruture code to create a tunnel machine using tailscale and nginx proxy manager
 
 ** Starting a s3 backend
 
@@ -19,85 +19,3 @@ terraform init
 terraform apply
 #+end_src
 
-** Starting Tunnel
-
-Get latest version of binary on https://github.com/boringproxy/boringproxy/releases
-
-#+begin_src shell
-# download binary
-wget https://github.com/boringproxy/boringproxy/releases/download/v0.9.1/boringproxy-linux-x86_64
-
-# rename binary
-mv boringproxy-linux-x86_64 boringproxy
-
-# give permission
-chmod +x boringproxy
-
-# allow executable permission to bind low ports (80/443)
-sudo setcap cap_net_bind_service=+ep boringproxy
-
-# start server and configure admin domain
-./boringproxy server 
-
-#+end_src
-
-** Enabling boringproxy as service on tunnel
-
-create file on ~/etc/systemd/system/proxy.service~
-
-#+begin_src conf
-[Unit]
-Description=Proxy service
-After=network.target
-StartLimitIntervalSec=0
-[Service]
-Type=simple
-Restart=always
-RestartSec=1
-User=ubuntu
-WorkingDirectory=/home/ubuntu
-ExecStart=/home/ubuntu/boringproxy server -admin-domain admin.georgerodrigues.dev
-
-[Install]
-WantedBy=multi-user.target
-#+end_src
-
-enable service
-~systemctl enable proxy~
-start service
-~systemctl start proxy~
-
-** Connecting Server to Tunnel
-
-#+begin_src shell
-# download binary
-wget https://github.com/boringproxy/boringproxy/releases/download/v0.9.1/boringproxy-linux-x86_64
-
-# rename binary
-mv boringproxy-linux-x86_64 boringproxy
-
-# give permission
-chmod +x boringproxy
-
-# use on token obtain on admin domain
-./boringproxy client -server admin.georgerodrigues.dev -token XXXXXXXXX -client-name server-name -user admin
-#+end_src
-
-** Enabling boringproxy as service on server
-
-#+begin_src shell
-[Unit]
-Description=Proxy service
-After=network.target
-StartLimitIntervalSec=0
-[Service]
-Type=simple
-Restart=always
-RestartSec=1
-User=george
-WorkingDirectory=/home/george
-ExecStart=/home/george/boringproxy client -server admin.georgerodrigues.dev -token XXXXXXXXX -client home-server -user admin
-
-[Install]
-WantedBy=multi-user.target
-#+end_src
